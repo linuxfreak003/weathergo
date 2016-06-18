@@ -1,6 +1,8 @@
 # weathergo
 A Simple command line weather tool written in go
 
-Usage: weathergo
-Options:
+###Usage: weathergo
+
+###Options:
+
 	-h		Show Humidity
