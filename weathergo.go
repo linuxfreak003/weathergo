@@ -70,12 +70,13 @@ func parseJsonString(s string) map[string]map[string]string {
 func main() {
 	var zip, state, city string
 	var days int
-	var humidity bool
+	var humidity, help bool
 	flag.StringVar(&zip, "zip", "84770", "Zipcode")
 	flag.StringVar(&state, "state", "UT", "State")
 	flag.StringVar(&city, "city", "SAINT_GEORGE", "City")
 	flag.IntVar(&days, "days", 1, "Days to forecast")
 	flag.BoolVar(&humidity, "h", false, "Humidity")
+	flag.BoolVar(&help, "help", false, "Show help information")
 	flag.Parse()
 
 	fmt.Println("Weather app")
