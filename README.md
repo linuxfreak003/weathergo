@@ -11,7 +11,6 @@ and 500 per day.
 
 ###Options:
 ```
--h		Show Humidity
 -zip  Zipcode to use
 -key  Weather Underground API key to use
 -days Number of days to forecast(not yet implemented)
