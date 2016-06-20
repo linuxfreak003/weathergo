@@ -68,6 +68,26 @@ func parseCurrentConditions(jstring string) map[string]map[string]string {
 	return today
 }
 
+func parseForecast(jstring string) []map[string]interface{} {
+	var iface interface{}
+	err := json.Unmarshal([]byte(jstring), &iface)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	m := iface.(map[string]interface{})
+	m = m["forecast"].(map[string]interface{})
+	m = m["simpleforecast"].(map[string]interface{})
+	all := m["forecastday"].([]interface{})
+
+	var days []map[string]interface{}
+	for _, item := range all {
+		days = append(days, item.(map[string]interface{}))
+	}
+
+	return days
+}
+
 func main() {
 	var zip, apikey string
 	//var days int
@@ -86,7 +106,7 @@ func main() {
 
 	flag.Parse()
 
-	fmt.Println("WeatherGo by Jared Chapman\n")
+	fmt.Printf("WeatherGo by Jared Chapman\n\n")
 
 	if help {
 		fmt.Printf("Usage: %s [options...]\n", os.Args[0])
@@ -96,12 +116,20 @@ func main() {
 		fmt.Println("-days\tNumber of days to forecast(not yet implemented)")
 		fmt.Println("-e\tShow Elevation")
 		fmt.Println("-h\tShow Humidity")
+		fmt.Println("-f\tShow Forecast")
 
 		os.Exit(0)
 	}
 
-	jsonString := download("http://api.wunderground.com/api/" + apikey + "/conditions/q/" + zip + ".json")
+	jsonString := download("http://api.wunderground.com/api/" + apikey + "/conditions/forecast/q/" + zip + ".json")
 	parsedInfo := parseCurrentConditions(jsonString)
+	parsedForecast := parseForecast(jsonString)
+
+	//fmt.Println(parsedForecast)
+	for _, day := range parsedForecast {
+		d := day["date"].(map[string]interface{})
+		fmt.Println(d["pretty"])
+	}
 
 	fmt.Printf("Location: %s\n", parsedInfo["display_location"]["full"])
 	fmt.Printf("Temperature: %s\n", parsedInfo["main"]["temperature_string"])
