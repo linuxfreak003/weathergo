@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -30,17 +31,17 @@ func download(url string) string {
 	return s
 }
 
-func parseJsonString(s string) map[string]map[string]string {
-	var i interface{}
-	err := json.Unmarshal([]byte(s), &i)
+func parseCurrentConditions(jstring string) map[string]map[string]string {
+	var iface interface{}
+	err := json.Unmarshal([]byte(jstring), &iface)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	m := i.(map[string]interface{})
+	m := iface.(map[string]interface{})
 	current := m["current_observation"].(map[string]interface{})
 
-	stuff := make(map[string]map[string]string)
+	today := make(map[string]map[string]string)
 	info := make(map[string]string)
 	for k, v := range current {
 		switch vv := v.(type) {
@@ -58,35 +59,58 @@ func parseJsonString(s string) map[string]map[string]string {
 					newMap[key] = vval
 				}
 			}
-			stuff[k] = newMap
+			today[k] = newMap
 		default:
 			log.Printf("Encountered unknown type")
 		}
 	}
-	stuff["main"] = info
-	return stuff
+	today["main"] = info
+	return today
 }
 
 func main() {
-	var zip, state, city string
-	var days int
-	var humidity bool
+	var zip, apikey string
+	//var days int
+	var humidity, help, elevation bool
+
+	//This api key is specific to me, if you want to use this application please use your own.
+	//API key is free, simply go to https://www.wunderground.com/weather/api and make an account.
+	flag.StringVar(&apikey, "key", "92d518fe1c24dc58", "API key from Weather Underground")
 	flag.StringVar(&zip, "zip", "84770", "Zipcode")
-	flag.StringVar(&state, "state", "UT", "State")
-	flag.StringVar(&city, "city", "SAINT_GEORGE", "City")
-	flag.IntVar(&days, "days", 1, "Days to forecast")
+	//flag.StringVar(&state, "state", "UT", "State")
+	//flag.StringVar(&city, "city", "SAINT_GEORGE", "City")
+	//flag.IntVar(&days, "days", 1, "Days to forecast")
 	flag.BoolVar(&humidity, "h", false, "Humidity")
+	flag.BoolVar(&elevation, "e", false, "Elevation")
+	flag.BoolVar(&help, "help", false, "Help information")
+
 	flag.Parse()
 
-	fmt.Println("Weather app")
-	s := download("http://api.wunderground.com/api/92d518fe1c24dc58/conditions/q/" + state + "/" + city + ".json")
+	fmt.Println("WeatherGo by Jared Chapman\n")
 
-	parsedInfo := parseJsonString(s)
+	if help {
+		fmt.Printf("Usage: %s [options...]\n", os.Args[0])
+		fmt.Printf("Options:\n")
+		fmt.Println("-zip\tZipcode")
+		fmt.Println("-key\tAPI key to use")
+		fmt.Println("-days\tNumber of days to forecast(not yet implemented)")
+		fmt.Println("-e\tShow Elevation")
+		fmt.Println("-h\tShow Humidity")
 
-	fmt.Printf("Weather report for %s\n", parsedInfo["display_location"]["full"])
-	fmt.Printf("at %s\n", parsedInfo["observation_location"]["elevation"])
-	fmt.Printf("%s\n", parsedInfo["main"]["observation_time"])
-	fmt.Printf("Sky: %s\n", parsedInfo["main"]["weather"])
+		os.Exit(0)
+	}
+
+	jsonString := download("http://api.wunderground.com/api/" + apikey + "/conditions/q/" + zip + ".json")
+	parsedInfo := parseCurrentConditions(jsonString)
+
+	fmt.Printf("Location: %s\n", parsedInfo["display_location"]["full"])
 	fmt.Printf("Temperature: %s\n", parsedInfo["main"]["temperature_string"])
-	fmt.Printf("Humidity: %s\n", parsedInfo["main"]["relative_humidity"])
+	fmt.Printf("%s\n", parsedInfo["main"]["observation_time"])
+	if elevation {
+		fmt.Printf("Elevation: %s\n", parsedInfo["observation_location"]["elevation"])
+	}
+	fmt.Printf("Sky: %s\n", parsedInfo["main"]["weather"])
+	if humidity {
+		fmt.Printf("Humidity: %s\n", parsedInfo["main"]["relative_humidity"])
+	}
 }
