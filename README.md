@@ -16,9 +16,9 @@ then `cd weathergo; go install`
 If you do choose to install weathergo, understand that is it still heavily
 under development (I dont even have version numbers yet).
 
-##Usage: `weathergo [Options...]`
+###Usage: `weathergo [Options...]`
 
-###Options:
+####Options:
 ```
 -zip  Zipcode to use
 -key  Weather Underground API key to use
