@@ -22,7 +22,7 @@ under development (I dont even have version numbers yet).
 ```
 -zip  Zipcode to use
 -key  Weather Underground API key to use
--days Number of days to forecast(not yet implemented)
+-days Number of days to forecast (up to 10)
 -e    Show Elevation
 -h    Show Humidity
 ```
