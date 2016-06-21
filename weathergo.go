@@ -6,10 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func download(url string) string {
@@ -121,17 +123,16 @@ func parseForecast(jstring string) []map[string]map[string]string {
 }
 
 func main() {
-	var zip, apikey string
+	var loc, apikey, config string
 	var days int
 	var humidity, help, elevation, forecast bool
 
 	//This api key is specific to me, if you want to use this application please use your own.
 	//API key is free, simply go to https://www.wunderground.com/weather/api and make an account.
-	flag.StringVar(&apikey, "key", "92d518fe1c24dc58", "API key from Weather Underground")
-	flag.StringVar(&zip, "zip", "84770", "Zipcode")
-	//flag.StringVar(&state, "state", "UT", "State")
-	//flag.StringVar(&city, "city", "SAINT_GEORGE", "City")
-	flag.IntVar(&days, "days", 4, "Days to forecast")
+	flag.StringVar(&apikey, "key", "", "API key from Weather Underground")
+	flag.StringVar(&loc, "loc", "CA/San_Francisco", "Location")
+	flag.StringVar(&config, "c", "", "Config file")
+	flag.IntVar(&days, "days", 11, "Days to forecast")
 	flag.BoolVar(&humidity, "h", false, "Humidity")
 	flag.BoolVar(&elevation, "e", false, "Elevation")
 	flag.BoolVar(&help, "help", false, "Help information")
@@ -140,26 +141,86 @@ func main() {
 	flag.Parse()
 
 	if help {
-		fmt.Println("WeatherGo by Jared Chapman")
+		fmt.Println("WeatherGo by Jared Chapman v0.1")
 
 		fmt.Printf("Usage: %s [Options]\n", os.Args[0])
-		fmt.Println("LOCATION:")
-		fmt.Println("  -zip=<zip>\tZipcode")
+		fmt.Println("CONFIG:")
+		fmt.Println("  -c=<filename>\tConfig file to use for location parameters")
+		fmt.Println("  \t\tNote that parameters from file will be")
+		fmt.Println("  \t\toverwritten by any flags")
 		fmt.Println("  -key=<key>\tAPI key to use")
+		fmt.Println("LOCATION:")
+		fmt.Println("  -loc=<zip>\tZipcode")
+		fmt.Println("  -loc=<SS/CITY>\tState/City")
 		fmt.Println("INFORMATION:")
-		fmt.Println("  -days\tNumber of days to forecast(not yet implemented)")
+		fmt.Println("  -days\tNumber of days to forecast(limit of 10)")
 		fmt.Println("  -e\tShow Elevation")
 		fmt.Println("  -h\tShow Humidity")
 		fmt.Println("  -f\tShow Forecast(4 day)")
 		fmt.Println("EXAMPLES:")
 		fmt.Printf("  %s -key=92d518fe1c24dc58\n", os.Args[0])
-		fmt.Printf("  %s -zip=84770 -f -e\n", os.Args[0])
+		fmt.Printf("  %s -loc=80432 -f -e -h\n", os.Args[0])
+		fmt.Printf("  %s -loc=CA/San_Francisco -f -e -h\n", os.Args[0])
+		fmt.Printf("  %s -c=config_file\n", os.Args[0])
 
 		os.Exit(0)
 	}
 
+	if config != "" {
+		dat, err := ioutil.ReadFile(config)
+		if err != nil {
+			log.Fatal(err)
+		}
+		lines := strings.Split(string(dat), "\n")
+		for _, line := range lines {
+			params := strings.Split(line, "=")
+			if len(params) > 1 {
+				switch params[0] {
+				case "key":
+					if apikey == "" {
+						apikey = params[1]
+					}
+				case "loc":
+					if loc == "CA/San_Francisco" {
+						loc = params[1]
+					}
+				case "days":
+					if days == 11 {
+						days, err = strconv.Atoi(params[1])
+						if err != nil {
+							log.Fatalf("Invalid parameter for days: %s", params[1])
+						}
+					}
+				case "h":
+					if !humidity {
+						if params[1] == "1" {
+							humidity = true
+						}
+					}
+				case "e":
+					if !elevation {
+						if params[1] == "1" {
+							elevation = true
+						}
+					}
+				case "f":
+					if !forecast {
+						if params[1] == "1" {
+							forecast = true
+						}
+					}
+				default:
+					log.Fatalf("Invalid parameter in %s: %s", config, params[0])
+				}
+
+			}
+		}
+
+		//os.Exit(0)
+	}
+
 	var parsedForecast []map[string]map[string]string
-	jsonString := download("http://api.wunderground.com/api/" + apikey + "/conditions/forecast10day/q/" + zip + ".json")
+	jsonString := download("http://api.wunderground.com/api/" + apikey + "/conditions/forecast10day/q/" + loc + ".json")
 	parsedInfo := parseCurrentConditions(jsonString)
 	if forecast {
 		parsedForecast = parseForecast(jsonString)
