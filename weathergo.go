@@ -88,7 +88,11 @@ func parseForecast(jstring string) []map[string]map[string]string {
 		for k, v := range current {
 			switch vv := v.(type) {
 			case float64:
-				info[k] = strconv.FormatFloat(vv, 'f', 0, 64)
+				if vv - float64(int(vv)) == 0 {
+					info[k] = strconv.FormatFloat(vv, 'f', 0, 64)
+				} else {
+					info[k] = strconv.FormatFloat(vv, 'f', 2, 64)
+				}
 			case string:
 				info[k] = vv
 			case map[string]interface{}:
@@ -96,7 +100,11 @@ func parseForecast(jstring string) []map[string]map[string]string {
 				for key, val := range vv {
 					switch vval := val.(type) {
 					case float64:
-						newMap[key] = strconv.FormatFloat(vval, 'f', 0, 64)
+						if vval - float64(int(vval)) == 0 {
+							newMap[key] = strconv.FormatFloat(vval, 'f', 0, 64)
+						} else {
+							newMap[key] = strconv.FormatFloat(vval, 'f', 2, 64)
+						}
 					case string:
 						newMap[key] = vval
 					}
@@ -144,7 +152,7 @@ func main() {
 		fmt.Println("  -h\tShow Humidity")
 		fmt.Println("  -f\tShow Forecast(4 day)")
 		fmt.Println("EXAMPLES:")
-		fmt.Printf("  %s -key=a7b8f91898723487234089\n", os.Args[0])
+		fmt.Printf("  %s -key=92d518fe1c24dc58\n", os.Args[0])
 		fmt.Printf("  %s -zip=84770 -f -e\n", os.Args[0])
 
 		os.Exit(0)
@@ -161,8 +169,9 @@ func main() {
 	if forecast {
 		for _, day := range parsedForecast {
 			fmt.Printf("%s %s %s, %s",day["date"]["weekday"],day["date"]["monthname"],day["date"]["day"],day["date"]["year"])
-			fmt.Printf("\tHigh: %s F",day["high"]["fahrenheit"])
-			fmt.Printf("\tLow: %s F\n",day["low"]["fahrenheit"])
+			fmt.Printf("\t%s with a high of %sF",day["main"]["conditions"],day["high"]["fahrenheit"])
+			fmt.Printf(" and low of %sF",day["low"]["fahrenheit"])
+			fmt.Printf(" and %s in rainfall\n",day["qpf_allday"]["in"])
 		}
 	}
 
