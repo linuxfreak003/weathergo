@@ -125,23 +125,32 @@ func parseForecast(jstring string) []map[string]map[string]string {
 func main() {
 	var loc, apikey, config string
 	var days int
-	var humidity, help, elevation, forecast bool
+	var humidity, help, elevation, forecast, vers, pressure, wind bool
+	version := "v0.1"
 
 	//This api key is specific to me, if you want to use this application please use your own.
 	//API key is free, simply go to https://www.wunderground.com/weather/api and make an account.
 	flag.StringVar(&apikey, "key", "", "API key from Weather Underground")
-	flag.StringVar(&loc, "loc", "CA/San_Francisco", "Location")
+	flag.StringVar(&loc, "loc", "autoip", "Location")
 	flag.StringVar(&config, "c", "", "Config file")
+	flag.BoolVar(&humidity, "h", false, "Show Humidity")
+	flag.BoolVar(&elevation, "e", false, "Show Elevation")
+	flag.BoolVar(&pressure, "p", false, "Show Pressure")
+	flag.BoolVar(&wind, "w", false, "Show Wind")
+	flag.BoolVar(&help, "help", false, "Show Help Information")
+	flag.BoolVar(&vers, "v", false, "Show Version")
+	flag.BoolVar(&forecast, "f", false, "Show Forecast")
 	flag.IntVar(&days, "days", 11, "Days to forecast")
-	flag.BoolVar(&humidity, "h", false, "Humidity")
-	flag.BoolVar(&elevation, "e", false, "Elevation")
-	flag.BoolVar(&help, "help", false, "Help information")
-	flag.BoolVar(&forecast, "f", false, "Forecast")
 
 	flag.Parse()
 
+	if vers {
+		fmt.Printf("WeatherGo %s\n", version)
+		os.Exit(0)
+	}
+
 	if help {
-		fmt.Println("WeatherGo by Jared Chapman v0.1")
+		fmt.Printf("WeatherGo %s\n", version)
 
 		fmt.Printf("Usage: %s [Options]\n", os.Args[0])
 		fmt.Println("CONFIG:")
@@ -215,8 +224,10 @@ func main() {
 
 			}
 		}
+	}
 
-		//os.Exit(0)
+	if apikey == "" {
+		log.Fatal("Error: No API key set!")
 	}
 
 	var parsedForecast []map[string]map[string]string
@@ -227,14 +238,21 @@ func main() {
 	}
 
 	//fmt.Println(parsedForecast)
-	fmt.Printf("Location: %s\n", parsedInfo["display_location"]["full"])
+	fmt.Printf("Current conditions for %s\n", parsedInfo["display_location"]["full"])
+	fmt.Printf("Station ID: %s\n", parsedInfo["main"]["station_id"])
 	fmt.Printf("Temperature: %s\n", parsedInfo["main"]["temperature_string"])
-	if elevation {
-		fmt.Printf("Elevation: %s\n", parsedInfo["observation_location"]["elevation"])
-	}
 	fmt.Printf("Sky: %s\n", parsedInfo["main"]["weather"])
 	if humidity {
 		fmt.Printf("Humidity: %s\n", parsedInfo["main"]["relative_humidity"])
+	}
+	if elevation {
+		fmt.Printf("Elevation: %s\n", parsedInfo["observation_location"]["elevation"])
+	}
+	if pressure {
+		fmt.Printf("Pressure: %sin\n", parsedInfo["main"]["pressure_in"])
+	}
+	if wind {
+		fmt.Printf("Wind: %s\n", parsedInfo["main"]["wind_string"])
 	}
 	fmt.Printf("%s\n", parsedInfo["main"]["observation_time"])
 
@@ -242,10 +260,11 @@ func main() {
 		fmt.Println("Forecast:")
 		for i, day := range parsedForecast {
 			if i < days {
-				fmt.Printf("  %s %s %s, %s", day["date"]["weekday_short"], day["date"]["monthname_short"], day["date"]["day"], day["date"]["year"])
-				fmt.Printf("\t%s with a high of %s °F (%s °C)", day["main"]["conditions"], day["high"]["fahrenheit"], day["high"]["celsius"])
-				fmt.Printf(" and low of %s °F (%s °C)", day["low"]["fahrenheit"], day["low"]["celsius"])
-				fmt.Printf(" and %s\" rainfall\n", day["qpf_allday"]["in"])
+				fmt.Printf("  %s %s %s, %s\n", day["date"]["weekday_short"], day["date"]["monthname_short"], day["date"]["day"], day["date"]["year"])
+				fmt.Printf("\tConditions:\t%s\n\tHigh:\t%s °F (%s °C)", day["main"]["conditions"], day["high"]["fahrenheit"], day["high"]["celsius"])
+				fmt.Printf("\n\tLow:\t%s °F (%s °C)", day["low"]["fahrenheit"], day["low"]["celsius"])
+				fmt.Printf("\n\tRainfall:\t%s\"", day["qpf_allday"]["in"])
+				fmt.Printf("\n\tSnowfall:\t%s\"\n", day["snow_allday"]["in"])
 			}
 		}
 	}
