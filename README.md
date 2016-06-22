@@ -25,7 +25,7 @@ CONFIG:
   -key=<key>    API key to use
 LOCATION:
   -loc=<zip>      Zipcode
-  -loc=<SS/CITY>  State/City
+  -loc=<ST/CITY>  State/City
 INFORMATION:
   -days=<#> Number of days to forecast(limit of 10)
   -e        Show Elevation

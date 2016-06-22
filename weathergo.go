@@ -160,7 +160,7 @@ func main() {
 		fmt.Println("  -key=<key>\tAPI key to use")
 		fmt.Println("LOCATION:")
 		fmt.Println("  -loc=<zip>\tZipcode")
-		fmt.Println("  -loc=<SS/CITY>\tState/City")
+		fmt.Println("  -loc=<ST/CITY>\tState/City")
 		fmt.Println("INFORMATION:")
 		fmt.Println("  -days\tNumber of days to forecast(limit of 10)")
 		fmt.Println("  -e\tShow Elevation")
