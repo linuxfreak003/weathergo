@@ -124,15 +124,15 @@ func parseForecast(jstring string) []map[string]map[string]string {
 
 func main() {
 	var loc, apikey, config string
-	var days int
+	var days, rain int
 	var humidity, help, elevation, forecast, vers, pressure, wind bool
 	version := "v0.1"
 
 	//This api key is specific to me, if you want to use this application please use your own.
 	//API key is free, simply go to https://www.wunderground.com/weather/api and make an account.
-	flag.StringVar(&apikey, "key", "", "API key from Weather Underground")
-	flag.StringVar(&loc, "loc", "autoip", "Location")
-	flag.StringVar(&config, "c", "", "Config file")
+	flag.StringVar(&apikey, "key", "", "API `key` from Weather Underground")
+	flag.StringVar(&loc, "loc", "autoip", "Location: zipcode|state/city")
+	flag.StringVar(&config, "c", "", "Config `file`")
 	flag.BoolVar(&humidity, "h", false, "Show Humidity")
 	flag.BoolVar(&elevation, "e", false, "Show Elevation")
 	flag.BoolVar(&pressure, "p", false, "Show Pressure")
@@ -141,6 +141,7 @@ func main() {
 	flag.BoolVar(&vers, "v", false, "Show Version")
 	flag.BoolVar(&forecast, "f", false, "Show Forecast")
 	flag.IntVar(&days, "days", 11, "Days to forecast")
+	flag.IntVar(&rain, "r", 0, "Days to total predicted rainfall")
 
 	flag.Parse()
 
@@ -166,6 +167,7 @@ func main() {
 		fmt.Println("  -e\tShow Elevation")
 		fmt.Println("  -h\tShow Humidity")
 		fmt.Println("  -f\tShow Forecast(4 day)")
+		fmt.Println("  -r\tShow total predicted rainfall for next # days.")
 		fmt.Println("EXAMPLES:")
 		fmt.Printf("  %s -key=<api_key>\n", os.Args[0])
 		fmt.Printf("  %s -loc=80432 -f -e -h\n", os.Args[0])
@@ -184,13 +186,15 @@ func main() {
 		for _, line := range lines {
 			params := strings.Split(line, "=")
 			if len(params) > 1 {
+				params[0] = strings.TrimSpace(params[0])
+				params[1] = strings.TrimSpace(params[1])
 				switch params[0] {
 				case "key":
 					if apikey == "" {
 						apikey = params[1]
 					}
 				case "loc":
-					if loc == "CA/San_Francisco" {
+					if loc == "autoip" {
 						loc = params[1]
 					}
 				case "days":
@@ -198,6 +202,13 @@ func main() {
 						days, err = strconv.Atoi(params[1])
 						if err != nil {
 							log.Fatalf("Invalid parameter for days: %s", params[1])
+						}
+					}
+				case "r":
+					if rain == 0 {
+						rain, err = strconv.Atoi(params[1])
+						if err != nil {
+							log.Fatalf("Invalid parameter for rain: %s", params[1])
 						}
 					}
 				case "h":
@@ -216,6 +227,18 @@ func main() {
 					if !forecast {
 						if params[1] == "1" {
 							forecast = true
+						}
+					}
+				case "p":
+					if !pressure {
+						if params[1] == "1" {
+							pressure = true
+						}
+					}
+				case "w":
+					if !wind {
+						if params[1] == "1" {
+							wind = true
 						}
 					}
 				default:
@@ -256,16 +279,28 @@ func main() {
 	}
 	fmt.Printf("%s\n", parsedInfo["main"]["observation_time"])
 
-	if forecast {
+	if forecast || rain > 0 {
 		fmt.Println("Forecast:")
+		rainfall := 0.0
 		for i, day := range parsedForecast {
-			if i < days {
+			if i < rain {
+				r := day["qpf_allday"]["in"]
+				f, err := strconv.ParseFloat(r, 64)
+				if err != nil {
+					log.Fatal("Invalid value for rainfall:", r)
+				}
+				rainfall += f
+			}
+			if i < days && forecast {
 				fmt.Printf("  %s %s %s, %s\n", day["date"]["weekday_short"], day["date"]["monthname_short"], day["date"]["day"], day["date"]["year"])
 				fmt.Printf("\tConditions:\t%s\n\tHigh:\t%s °F (%s °C)", day["main"]["conditions"], day["high"]["fahrenheit"], day["high"]["celsius"])
 				fmt.Printf("\n\tLow:\t%s °F (%s °C)", day["low"]["fahrenheit"], day["low"]["celsius"])
 				fmt.Printf("\n\tRainfall:\t%s\"", day["qpf_allday"]["in"])
 				fmt.Printf("\n\tSnowfall:\t%s\"\n", day["snow_allday"]["in"])
 			}
+		}
+		if rain > 0 {
+			fmt.Printf("%0.2f total inches of rainfall predicted\n", rainfall)
 		}
 	}
 
