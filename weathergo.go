@@ -136,7 +136,7 @@ func main() {
 	flag.BoolVar(&humidity, "h", false, "Humidity")
 	flag.BoolVar(&elevation, "e", false, "Elevation")
 	flag.BoolVar(&help, "help", false, "Help information")
-	flag.BoolVar(&forecast, "f", false, "Elevation")
+	flag.BoolVar(&forecast, "f", false, "Forecast")
 
 	flag.Parse()
 
@@ -158,7 +158,7 @@ func main() {
 		fmt.Println("  -h\tShow Humidity")
 		fmt.Println("  -f\tShow Forecast(4 day)")
 		fmt.Println("EXAMPLES:")
-		fmt.Printf("  %s -key=92d518fe1c24dc58\n", os.Args[0])
+		fmt.Printf("  %s -key=<api_key>\n", os.Args[0])
 		fmt.Printf("  %s -loc=80432 -f -e -h\n", os.Args[0])
 		fmt.Printf("  %s -loc=CA/San_Francisco -f -e -h\n", os.Args[0])
 		fmt.Printf("  %s -c=config_file\n", os.Args[0])
