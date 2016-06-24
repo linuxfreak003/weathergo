@@ -46,6 +46,7 @@ EXAMPLES:
 
 ####Config:
 To set variables in config file on each line list <flag>=<value> (for boolean values value is 1)
+
 EXAMPLE CONFIG:
 ```
 key=<api_key>
