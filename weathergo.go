@@ -300,8 +300,7 @@ func main() {
 			}
 		}
 		if rain > 0 {
-			fmt.Printf("%0.2f total inches of rainfall predicted\n", rainfall)
+			fmt.Printf("%0.2f total inches of rainfall predicted in next %d days.\n", rainfall, rain)
 		}
 	}
-
 }
