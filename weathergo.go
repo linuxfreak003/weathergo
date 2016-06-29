@@ -177,6 +177,7 @@ func main() {
 		os.Exit(0)
 	}
 
+	config = os.Getenv("HOME") + "/.weathergo"
 	if config != "" {
 		dat, err := ioutil.ReadFile(config)
 		if err != nil {
