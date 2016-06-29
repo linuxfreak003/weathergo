@@ -133,7 +133,7 @@ func main() {
 	flag.StringVar(&apikey, "key", "", "API `key` from Weather Underground")
 	flag.StringVar(&loc, "loc", "autoip", "Location: zipcode|state/city")
 	flag.StringVar(&config, "c", "", "Config `file`")
-	flag.BoolVar(&humidity, "h", false, "Show Humidity")
+	flag.BoolVar(&humidity, "h", true, "Show Humidity")
 	flag.BoolVar(&elevation, "e", false, "Show Elevation")
 	flag.BoolVar(&pressure, "p", false, "Show Pressure")
 	flag.BoolVar(&wind, "w", false, "Show Wind")
@@ -297,7 +297,8 @@ func main() {
 				fmt.Printf("\tConditions:\t%s\n\tHigh:\t%s °F (%s °C)", day["main"]["conditions"], day["high"]["fahrenheit"], day["high"]["celsius"])
 				fmt.Printf("\n\tLow:\t%s °F (%s °C)", day["low"]["fahrenheit"], day["low"]["celsius"])
 				fmt.Printf("\n\tRainfall:\t%s\"", day["qpf_allday"]["in"])
-				fmt.Printf("\n\tSnowfall:\t%s\"\n", day["snow_allday"]["in"])
+				fmt.Printf("\n\tSnowfall:\t%s\"", day["snow_allday"]["in"])
+				fmt.Printf("\n\tHumidity:\t%s%%\n", day["main"]["avehumidity"])
 			}
 		}
 		if rain > 0 {
