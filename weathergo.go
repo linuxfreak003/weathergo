@@ -139,9 +139,9 @@ func main() {
 	flag.BoolVar(&wind, "w", false, "Show Wind")
 	flag.BoolVar(&help, "help", false, "Show Help Information")
 	flag.BoolVar(&vers, "v", false, "Show Version")
-	flag.BoolVar(&forecast, "f", false, "Show Forecast")
+	flag.BoolVar(&forecast, "f", false, "Show Forecast (overridden by -days)")
 	flag.IntVar(&days, "days", 11, "Days to forecast")
-	flag.IntVar(&rain, "r", 0, "Days to total predicted rainfall")
+	flag.IntVar(&rain, "r", 0, "Days to predict total rainfall")
 
 	flag.Parse()
 
