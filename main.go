@@ -32,10 +32,55 @@ type Observation struct {
 	Precipitation string  `json:"precip_today_in"`
 }
 
+// Date data
+type Date struct {
+	Epoch     int    `json:"epoch"`
+	Pretty    string `json:"pretty"`
+	Day       int    `json:"day"`
+	Month     int    `json:"month"`
+	Year      int    `json:"year"`
+	Hour      int    `json:"hour"`
+	Minute    int    `json:"min"`
+	Second    int    `json:"sec"`
+	MonthName string `json:"monthname"`
+	Weekday   string `json:"weekday"`
+}
+
+// Temperature data
+type Temperature struct {
+	Fahrenheit float64 `json:"fahrenheit"`
+	Celsius    float64 `json:"celsius"`
+}
+
+// Depth data
+type Depth struct {
+}
+
+// ForecastDay data
+type ForecastDay struct {
+	Date          Date        `json:"date"`
+	Period        int         `json:"period"`
+	High          Temperature `json:"high"`
+	Low           Temperature `json:"low"`
+	Conditions    string      `json:"conditions"`
+	Precipitation Depth
+}
+
+// SimpleForecast data
+type SimpleForecast struct {
+	ForecastDays []ForecastDay `json:"forecastday"`
+}
+
+// Forecast data
+type Forecast struct {
+	SimpleForecast SimpleForecast `json:"simpleforecast"`
+}
+
 // WeatherResponse is the response data
 type WeatherResponse struct {
 	Response           MetaInfo    `json:"response"`
 	CurrentObservation Observation `json:"current_observation"`
+	Forecast           Forecast    `json:"forecast"`
 }
 
 // MetaInfo is the Metadata contained in response
