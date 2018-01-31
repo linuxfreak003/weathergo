@@ -3,15 +3,10 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"flag"
-	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
-	"strings"
 )
 
 func download(url string) string {
@@ -122,6 +117,7 @@ func parseForecast(jstring string) []map[string]map[string]string {
 	return days
 }
 
+/*
 func main() {
 	var loc, apikey, config string
 	var days, rain int
@@ -313,3 +309,4 @@ func main() {
 		}
 	}
 }
+*/
