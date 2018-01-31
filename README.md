@@ -19,8 +19,8 @@ To install run
 
 then `cd weathergo; go install`
 
-(For `go install` to work your $GOBIN variable must be set, optionally
-  you can run `go build` instead)
+(For `go install` to work your $GOBIN variable must be set,d
+optionally you can run `go build` instead)
 
 ## Usage
 

@@ -16,20 +16,31 @@ type Image struct {
 	Link  string `json:"link"`
 }
 
+// Location information
+type Location struct {
+	Full      string `json:"full"`
+	City      string `json:"city"`
+	State     string `json:"state"`
+	Country   string `json:"country"`
+	Elevation string `json:"elevation"`
+}
+
 // Observation data
 type Observation struct {
-	StationID     string  `json:"station_id"`
-	TimeString    string  `json:"observation_time"`
-	Condition     string  `json:"weather"`
-	ConditionURL  string  `json:"icon_url"`
-	Temperature   string  `json:"temperature_string"`
-	Fahrenheit    float64 `json:"temp_f"`
-	Celsius       float64 `json:"temp_c"`
-	Wind          string  `json:"wind_string"`
-	WindDegrees   float64 `json:"wind_degrees"`
-	WindSpeed     float64 `json:"wind_mph"`
-	FeelsLike     string  `json:"feelslike_string"`
-	Precipitation string  `json:"precip_today_in"`
+	DisplayLocation     Location `json:"display_location"`
+	ObservationLocation Location `json:"observation_location"`
+	StationID           string   `json:"station_id"`
+	TimeString          string   `json:"observation_time"`
+	Condition           string   `json:"weather"`
+	ConditionURL        string   `json:"icon_url"`
+	Temperature         string   `json:"temperature_string"`
+	Fahrenheit          float64  `json:"temp_f"`
+	Celsius             float64  `json:"temp_c"`
+	Wind                string   `json:"wind_string"`
+	WindDegrees         float64  `json:"wind_degrees"`
+	WindSpeed           float64  `json:"wind_mph"`
+	FeelsLike           string   `json:"feelslike_string"`
+	Precipitation       string   `json:"precip_today_in"`
 }
 
 // Date data
@@ -112,15 +123,21 @@ func main() {
 		apiKey   = "cc410e1c00a12efa"
 		location = "UT/Saint_George"
 	)
+
 	query := fmt.Sprintf("http://api.wunderground.com/api/%s/conditions/q/%s.json", apiKey, location)
 	data, err := GetURL(query)
 	if err != nil {
 		log.Fatalf("error encountered getting URL: %s", err)
 	}
+
 	var response WeatherResponse
 	err = json.Unmarshal(data, &response)
 	if err != nil {
 		log.Fatalf("error encountered unmarshaling json: %s", err)
 	}
-	fmt.Printf("Weather: %s", response.CurrentObservation.Temperature)
+
+	fmt.Printf("Current conditions for %s\n", response.CurrentObservation.DisplayLocation.Full)
+	fmt.Printf("Station ID: %s\n", response.CurrentObservation.StationID)
+	fmt.Printf("Temperature: %s feels like %s\n", response.CurrentObservation.Temperature, response.CurrentObservation.FeelsLike)
+	fmt.Printf("Sky: %s\n", response.CurrentObservation.Condition)
 }
