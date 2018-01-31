@@ -22,7 +22,10 @@ then `cd weathergo; go install`
 (For `go install` to work your $GOBIN variable must be set, optionally
   you can run `go build` instead)
 
-## Usage: `weathergo [-c config_file | -key <apikey>] [Options...]`
+## Usage
+
+Command:
+`weathergo [-c config_file | -key <apikey>] [Options...]`
 
 ```bash
 CONFIG:
