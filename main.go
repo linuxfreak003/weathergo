@@ -138,6 +138,6 @@ func main() {
 
 	fmt.Printf("Current conditions for %s\n", response.CurrentObservation.DisplayLocation.Full)
 	fmt.Printf("Station ID: %s\n", response.CurrentObservation.StationID)
-	fmt.Printf("Temperature: %s feels like %s\n", response.CurrentObservation.Temperature, response.CurrentObservation.FeelsLike)
+	fmt.Printf("Temperature: %s\nFeels like: %s\n", response.CurrentObservation.Temperature, response.CurrentObservation.FeelsLike)
 	fmt.Printf("Sky: %s\n", response.CurrentObservation.Condition)
 }

@@ -62,3 +62,7 @@ days=7
 f=1
 h=1
 ```
+
+### LICENSE
+
+[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
