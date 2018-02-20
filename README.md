@@ -65,4 +65,4 @@ h=1
 
 ### LICENSE
 
-[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![LICENSE](https://img.shields.io/pypi/l/Django.svg)](LICENSE)
