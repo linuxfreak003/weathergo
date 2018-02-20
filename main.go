@@ -3,10 +3,12 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
 )
 
 // Image data
@@ -118,13 +120,30 @@ func GetURL(url string) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func main() {
-	var (
-		apiKey   = "cc410e1c00a12efa"
-		location = "UT/Saint_George"
-	)
+func usage(version string) {
+	fmt.Printf("WeatherGo %s\n", version)
+	fmt.Printf("Usage: %s [flags]\n", os.Args[0])
+	flag.PrintDefaults()
+	os.Exit(0)
+}
 
-	query := fmt.Sprintf("http://api.wunderground.com/api/%s/conditions/q/%s.json", apiKey, location)
+func main() {
+	version := "v0.2"
+	var apiKey, location, zip string
+	var elevation, help bool
+
+	flag.StringVar(&apiKey, "key", "cc410e1c00a12efa", "`API key` from Weather Underground")
+	flag.StringVar(&location, "loc", "UT/Saint_George", "location in form of `state/city`")
+	flag.StringVar(&zip, "zip", "84770", "`zip code`")
+	flag.BoolVar(&elevation, "e", false, "Show elevation")
+	flag.BoolVar(&help, "h", false, "Show help")
+	flag.Parse()
+
+	if help {
+		usage(version)
+	}
+
+	query := fmt.Sprintf("http://api.wunderground.com/api/%s/conditions/q/%s.json", apiKey, zip)
 	data, err := GetURL(query)
 	if err != nil {
 		log.Fatalf("error encountered getting URL: %s", err)
@@ -133,11 +152,14 @@ func main() {
 	var response WeatherResponse
 	err = json.Unmarshal(data, &response)
 	if err != nil {
-		log.Fatalf("error encountered unmarshaling json: %s", err)
+		log.Fatalf("error encountered unmarshalling json: %s", err)
 	}
 
 	fmt.Printf("Current conditions for %s\n", response.CurrentObservation.DisplayLocation.Full)
 	fmt.Printf("Station ID: %s\n", response.CurrentObservation.StationID)
 	fmt.Printf("Temperature: %s\nFeels like: %s\n", response.CurrentObservation.Temperature, response.CurrentObservation.FeelsLike)
 	fmt.Printf("Sky: %s\n", response.CurrentObservation.Condition)
+	if elevation {
+		fmt.Printf("Elevation: %s\n", response.CurrentObservation.DisplayLocation.Elevation)
+	}
 }
