@@ -159,7 +159,8 @@ func main() {
 	fmt.Printf("Station ID: %s\n", response.CurrentObservation.StationID)
 	fmt.Printf("Temperature: %s\nFeels like: %s\n", response.CurrentObservation.Temperature, response.CurrentObservation.FeelsLike)
 	fmt.Printf("Sky: %s\n", response.CurrentObservation.Condition)
+	fmt.Printf("Wind: %s\n", response.CurrentObservation.Wind)
 	if elevation {
-		fmt.Printf("Elevation: %s\n", response.CurrentObservation.DisplayLocation.Elevation)
+		fmt.Printf("Elevation: %s m\n", response.CurrentObservation.DisplayLocation.Elevation)
 	}
 }
