@@ -13,56 +13,31 @@ and 500 per day.
 
 ## Installation
 
-To install run
+### Using `go get`
 
-`git clone https://github.com/linuxfreak003/weathergo.git`
-
-then `cd weathergo; go install`
-
-(For `go install` to work your $GOBIN variable must be set,d
-optionally you can run `go build` instead)
+`go get -u github.com/linuxfreak003/weathergo`
 
 ## Usage
 
 Command:
-`weathergo [-c config_file | -key <apikey>] [Options...]`
+`weathergo -key <apikey> [Options...]`
 
 ```bash
 CONFIG:
-  -c <filename> Config file to use for location parameters
-                Note that parameters from file will be
-                overwritten by any command-line flags
   -key <key>    API key to use
 LOCATION:
   -loc <zip>      Zipcode
   -loc <ST/CITY>  State/City
 INFORMATION:
-  -days <#> Number of days to forecast(limit of 10)
   -e        Show Elevation
-  -h        Show Humidity
-  -f        Show Forecast(10 day default)
-  -v        Show Version information
-  -r        Show Rainfall predictions
+  -h        Show Humidity #Depricated for now
+  -v        Show Version information #Depricated for now
+  -r        Show Rainfall predictions #Depricated for now
 EXAMPLES:
   weathergo -key <api_key>
-  weathergo -loc 80432 -f -e -h -key <api_key>
-  weathergo -loc CA/San_Francisco -f -e -h -c <config_file>
-  weathergo -c <config_file>
+  weathergo -loc 80432 -key <api_key>
+  weathergo -loc CA/San_Francisco -e
 ```
-
-### Config
-
-To set variables in config file on each line list `<flag>=<value>` (for boolean variables value is 1)
-
-```txt
-EXAMPLE CONFIG:
-key=<api_key>
-loc=CA/San_Francisco
-days=7
-f=1
-h=1
-```
-
 ### LICENSE
 
 [![LICENSE](https://img.shields.io/pypi/l/Django.svg)](LICENSE)
