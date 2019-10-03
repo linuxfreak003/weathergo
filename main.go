@@ -11,95 +11,60 @@ import (
 	"os"
 )
 
-// Image data
-type Image struct {
-	URL   string `json:"url"`
-	Title string `json:"title"`
-	Link  string `json:"link"`
-}
-
-// Location information
-type Location struct {
-	Full      string `json:"full"`
-	City      string `json:"city"`
-	State     string `json:"state"`
-	Country   string `json:"country"`
-	Elevation string `json:"elevation"`
-}
-
-// Observation data
-type Observation struct {
-	DisplayLocation     Location `json:"display_location"`
-	ObservationLocation Location `json:"observation_location"`
-	StationID           string   `json:"station_id"`
-	TimeString          string   `json:"observation_time"`
-	Condition           string   `json:"weather"`
-	ConditionURL        string   `json:"icon_url"`
-	Temperature         string   `json:"temperature_string"`
-	Fahrenheit          float64  `json:"temp_f"`
-	Celsius             float64  `json:"temp_c"`
-	Wind                string   `json:"wind_string"`
-	WindDegrees         float64  `json:"wind_degrees"`
-	WindSpeed           float64  `json:"wind_mph"`
-	FeelsLike           string   `json:"feelslike_string"`
-	Precipitation       string   `json:"precip_today_in"`
-}
-
-// Date data
-type Date struct {
-	Epoch     int    `json:"epoch"`
-	Pretty    string `json:"pretty"`
-	Day       int    `json:"day"`
-	Month     int    `json:"month"`
-	Year      int    `json:"year"`
-	Hour      int    `json:"hour"`
-	Minute    int    `json:"min"`
-	Second    int    `json:"sec"`
-	MonthName string `json:"monthname"`
-	Weekday   string `json:"weekday"`
-}
-
-// Temperature data
-type Temperature struct {
-	Fahrenheit float64 `json:"fahrenheit"`
-	Celsius    float64 `json:"celsius"`
-}
-
-// Depth data
-type Depth struct {
-}
-
-// ForecastDay data
-type ForecastDay struct {
-	Date          Date        `json:"date"`
-	Period        int         `json:"period"`
-	High          Temperature `json:"high"`
-	Low           Temperature `json:"low"`
-	Conditions    string      `json:"conditions"`
-	Precipitation Depth
-}
-
-// SimpleForecast data
-type SimpleForecast struct {
-	ForecastDays []ForecastDay `json:"forecastday"`
-}
-
-// Forecast data
-type Forecast struct {
-	SimpleForecast SimpleForecast `json:"simpleforecast"`
-}
-
-// WeatherResponse is the response data
 type WeatherResponse struct {
-	Response           MetaInfo    `json:"response"`
-	CurrentObservation Observation `json:"current_observation"`
-	Forecast           Forecast    `json:"forecast"`
+	Cod     string     `json:"cod"`
+	Message float64    `json:"message"`
+	Cnt     int        `json:"cnt"`
+	City    City       `json:"city"`
+	List    []Forecast `json:"list"`
 }
 
-// MetaInfo is the Metadata contained in response
-type MetaInfo struct {
-	Version string `json:"version"`
-	Terms   string `json:"termsofService"`
+type City struct {
+	Id      int    `json:"id"`
+	Name    string `json:"name"`
+	Coord   Coord  `json:"coord"`
+	Country string `json:"country"`
+}
+
+type Coord struct {
+	Lat float64 `json:"lat"`
+	Lon float64 `json:"lon"`
+}
+
+type Forecast struct {
+	Dt      int       `json:"dt"`
+	Main    Main      `json:"main"`
+	Weather []Weather `json:"weather"`
+	Wind    Wind      `json:"wind"`
+	Sys     Sys       `json:"sys"`
+	DtTxt   string    `json:"dttxt"`
+}
+
+type Main struct {
+	Temp      float64 `json:"temp"`
+	TempMin   float64 `json:"temp_min"`
+	TempMax   float64 `json:"temp_max"`
+	Pressure  float64 `json:"pressure"`
+	SeaLevel  float64 `json:"sea_level"`
+	GrndLevel float64 `json:"grnd_level"`
+	Humidity  float64 `json:"humidity"`
+	TempKf    float64 `json:"temp_kf"`
+}
+
+type Weather struct {
+	Id          int    `json:"id"`
+	Main        string `json:"main"`
+	Description string `json:"description"`
+	Icon        string `json:"icon"`
+}
+
+type Wind struct {
+	Speed float64 `json:"speed"`
+	Deg   float64 `json:"deg"`
+}
+
+type Sys struct {
+	Pod string `json:"pod"`
 }
 
 // GetURL takes a URL and returns the result as []byte
@@ -132,10 +97,10 @@ func main() {
 	var apiKey, location, zip string
 	var elevation, help bool
 
-	flag.StringVar(&apiKey, "key", "cc410e1c00a12efa", "`API key` from Weather Underground")
-	flag.StringVar(&location, "loc", "UT/Saint_George", "location in form of `state/city`")
+	flag.StringVar(&apiKey, "key", "adcd7639f2766b843be9c964cdccd3e2", "`API key` from Open Weather Map")
+	flag.StringVar(&location, "loc", "Pheonix", "location in form of `state/city`")
 	flag.StringVar(&zip, "zip", "84770", "`zip code`")
-	flag.BoolVar(&elevation, "e", false, "Show elevation")
+	// flag.BoolVar(&elevation, "e", false, "Show elevation")
 	flag.BoolVar(&help, "h", false, "Show help")
 	flag.Parse()
 
@@ -143,7 +108,7 @@ func main() {
 		usage(version)
 	}
 
-	query := fmt.Sprintf("http://api.wunderground.com/api/%s/conditions/q/%s.json", apiKey, zip)
+	query := fmt.Sprintf("http://api.openweathermap.org/data/2.5/forecast?q=%s&APPID=%s&units=imperial", location, apiKey)
 	data, err := GetURL(query)
 	if err != nil {
 		log.Fatalf("error encountered getting URL: %s", err)
@@ -155,12 +120,13 @@ func main() {
 		log.Fatalf("error encountered unmarshalling json: %s", err)
 	}
 
-	fmt.Printf("Current conditions for %s\n", response.CurrentObservation.DisplayLocation.Full)
-	fmt.Printf("Station ID: %s\n", response.CurrentObservation.StationID)
-	fmt.Printf("Temperature: %s\nFeels like: %s\n", response.CurrentObservation.Temperature, response.CurrentObservation.FeelsLike)
-	fmt.Printf("Sky: %s\n", response.CurrentObservation.Condition)
-	fmt.Printf("Wind: %s\n", response.CurrentObservation.Wind)
-	if elevation {
-		fmt.Printf("Elevation: %s m\n", response.CurrentObservation.DisplayLocation.Elevation)
-	}
+	fmt.Printf("Current conditions for %s\n", response.City.Name)
+	forecast := response.List[response.Cnt-1]
+	fmt.Printf("Temperature: %0.2f\n", forecast.Main.Temp)
+	fmt.Printf("Sky: %s\n", forecast.Weather[0].Main)
+	fmt.Printf("Wind: %0.2f\n", forecast.Wind.Speed)
+	fmt.Printf("Pressure: %0.2f\n", forecast.Main.Pressure)
+	// if elevation {
+	// 	fmt.Printf("Elevation: %0.2f m\n", forecast.Main.GrndLevel)
+	// }
 }
