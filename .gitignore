@@ -1,3 +1,4 @@
 weathergo
 *.config
 *.swp
+go.sum

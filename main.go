@@ -9,66 +9,57 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
+
+	"github.com/kelvins/geocoder"
 )
 
-type WeatherResponse struct {
-	Cod     string     `json:"cod"`
-	Message float64    `json:"message"`
-	Cnt     int        `json:"cnt"`
-	City    City       `json:"city"`
-	List    []Forecast `json:"list"`
+var ArrowMap = map[string]string{
+	"NW": "⬁",
+	"NE": "⬀",
+	"SE": "⬂",
+	"SW": "⬃",
+	"N":  "⇧",
+	"S":  "⇩",
+	"E":  "⇨",
+	"W":  "⇦",
 }
 
-type City struct {
-	Id      int    `json:"id"`
-	Name    string `json:"name"`
-	Coord   Coord  `json:"coord"`
-	Country string `json:"country"`
+type Response struct {
+	Properties Properties `json:"properties"`
 }
 
-type Coord struct {
-	Lat float64 `json:"lat"`
-	Lon float64 `json:"lon"`
+type Elevation struct {
+	Value    float64 `json:"value"`
+	UnitCode string  `json:"unitCode"`
 }
 
-type Forecast struct {
-	Dt      int       `json:"dt"`
-	Main    Main      `json:"main"`
-	Weather []Weather `json:"weather"`
-	Wind    Wind      `json:"wind"`
-	Sys     Sys       `json:"sys"`
-	DtTxt   string    `json:"dttxt"`
+type Period struct {
+	Number           int       `json:"number"`
+	Name             string    `json:"name"`
+	StartTime        time.Time `json:"startTime"`
+	EndTime          time.Time `json:"endTime"`
+	IsDaytime        bool      `json:"isDaytime"`
+	Temperature      int       `json:"temperature"`
+	TemperatureUnit  string    `json:"temperatureUnit"`
+	WindSpeed        string    `json:"windSpeed"`
+	WindDirection    string    `json:"windDirection"`
+	Icon             string    `json:"icon"`
+	ShortForecast    string    `json:"shortForecast"`
+	DetailedForecast string    `json:"detailedForecast"`
 }
 
-type Main struct {
-	Temp      float64 `json:"temp"`
-	TempMin   float64 `json:"temp_min"`
-	TempMax   float64 `json:"temp_max"`
-	Pressure  float64 `json:"pressure"`
-	SeaLevel  float64 `json:"sea_level"`
-	GrndLevel float64 `json:"grnd_level"`
-	Humidity  float64 `json:"humidity"`
-	TempKf    float64 `json:"temp_kf"`
+type Properties struct {
+	Updated           string    `json:"updated"`
+	Units             string    `json:"units"`
+	ForecastGenerator string    `json:"forecastGenerator"`
+	GeneratedAt       time.Time `json:"generatedAt"`
+	UpdateTime        time.Time `json:"updateTime"`
+	Elevation         Elevation `json:"elevation"`
+	Periods           []Period  `json:"periods"`
 }
 
-type Weather struct {
-	Id          int    `json:"id"`
-	Main        string `json:"main"`
-	Description string `json:"description"`
-	Icon        string `json:"icon"`
-}
-
-type Wind struct {
-	Speed float64 `json:"speed"`
-	Deg   float64 `json:"deg"`
-}
-
-type Sys struct {
-	Pod string `json:"pod"`
-}
-
-// GetURL takes a URL and returns the result as []byte
-func GetURL(url string) ([]byte, error) {
+func DownloadURL(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("error getting url: %s", err)
@@ -93,40 +84,71 @@ func usage(version string) {
 }
 
 func main() {
-	version := "v0.2"
-	var apiKey, location, zip string
-	var elevation, help bool
+	// This example will need an API Key in your project
+	// to set your API KEY follow directions as explained here:
+	// https://developers.google.com/maps/documentation/geocoding/get-api-key
+	version := "v0.3"
+	var apiKey, zip string
+	var city, state, country string
+	var elevation, forecast, help bool
 
-	flag.StringVar(&apiKey, "key", "adcd7639f2766b843be9c964cdccd3e2", "`API key` from Open Weather Map")
-	flag.StringVar(&location, "loc", "Pheonix", "location in form of `state/city`")
-	flag.StringVar(&zip, "zip", "84770", "`zip code`")
-	// flag.BoolVar(&elevation, "e", false, "Show elevation")
+	flag.StringVar(&apiKey, "key", "", "`API key` from Open Weather Map")
+	flag.StringVar(&country, "country", "United States", "Country")
+	flag.StringVar(&city, "city", "", "City")
+	flag.StringVar(&state, "state", "", "State")
+	flag.StringVar(&zip, "zip", "", "`postal code`")
+	flag.BoolVar(&elevation, "e", false, "Show elevation")
+	flag.BoolVar(&forecast, "f", false, "Show forecast")
 	flag.BoolVar(&help, "h", false, "Show help")
+
 	flag.Parse()
 
 	if help {
 		usage(version)
 	}
 
-	query := fmt.Sprintf("http://api.openweathermap.org/data/2.5/forecast?q=%s&APPID=%s&units=imperial", location, apiKey)
-	data, err := GetURL(query)
+	geocoder.ApiKey = apiKey
+
+	// Convert address to location (latitude, longitude)
+	loc, err := geocoder.Geocoding(geocoder.Address{
+		City:       city,
+		State:      state,
+		Country:    country,
+		PostalCode: zip,
+	})
 	if err != nil {
-		log.Fatalf("error encountered getting URL: %s", err)
+		log.Fatalf("There was an error getting longitude/latitude: %v", err)
 	}
 
-	var response WeatherResponse
-	err = json.Unmarshal(data, &response)
+	addresses, err := geocoder.GeocodingReverse(loc)
+	address := addresses[0]
+
+	url := fmt.Sprintf("https://api.weather.gov/points/%f,%f/forecast", loc.Latitude, loc.Longitude)
+	bs, err := DownloadURL(url)
 	if err != nil {
-		log.Fatalf("error encountered unmarshalling json: %s", err)
+		log.Fatalf("There was an error getting forecast: %v", err)
 	}
 
-	fmt.Printf("Current conditions for %s\n", response.City.Name)
-	forecast := response.List[response.Cnt-1]
-	fmt.Printf("Temperature: %0.2f\n", forecast.Main.Temp)
-	fmt.Printf("Sky: %s\n", forecast.Weather[0].Main)
-	fmt.Printf("Wind: %0.2f\n", forecast.Wind.Speed)
-	fmt.Printf("Pressure: %0.2f\n", forecast.Main.Pressure)
-	// if elevation {
-	// 	fmt.Printf("Elevation: %0.2f m\n", forecast.Main.GrndLevel)
-	// }
+	var res Response
+	err = json.Unmarshal(bs, &res)
+	if err != nil {
+		log.Panicf("Could not unmarshal json: %v", err)
+	}
+
+	fmt.Printf("Forecast for %s\n", address.FormattedAddress)
+	if elevation {
+		fmt.Printf("Elevation: %0.2f %s\n",
+			res.Properties.Elevation.Value,
+			res.Properties.Elevation.UnitCode,
+		)
+	}
+	if !forecast {
+		res.Properties.Periods = []Period{res.Properties.Periods[0]}
+	}
+	for _, period := range res.Properties.Periods {
+		fmt.Printf("%s:\n", period.Name)
+		fmt.Printf("\tTemperature: %d %s\n", period.Temperature, period.TemperatureUnit)
+		fmt.Printf("\tSky: %s\n", period.ShortForecast)
+		fmt.Printf("\tWind: %s to the %s %s\n", period.WindSpeed, period.WindDirection, ArrowMap[period.WindDirection])
+	}
 }
