@@ -6,7 +6,7 @@ A simple command-line weather tool written in Go
 
 You must have golang installed and working on your system with a valid $GOPATH.
 To use this tool you first need to obtain a Google geocode api key from
-(here)[https://developers.google.com/maps/documentation/geocoding/get-api-key]
+[here](https://developers.google.com/maps/documentation/geocoding/get-api-key)
 
 You will probably have to start a free trial if you do not already have an account
 
